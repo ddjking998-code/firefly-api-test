@@ -5,9 +5,13 @@ on:
     branches: [main, master]
   pull_request:
   workflow_dispatch:
+  schedule:
+    # 10:00 Asia/Shanghai == 02:00 UTC
+    - cron: "0 2 * * *"
 
 jobs:
   mock-tests:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,7 +31,7 @@ jobs:
         run: PYTHONPATH=. pytest -q -m "not integration" tests
 
   integration-smoke:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     env:
       RUN_INTEGRATION_TESTS: "true"
