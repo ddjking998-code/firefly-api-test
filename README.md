@@ -61,3 +61,4 @@ export FIREFLY_EXPECTED_STATUS=200
 # export FIREFLY_EXPECTED_MESSAGE="ok"
 pytest -q -m integration
 ```
+# firefly-api-test
