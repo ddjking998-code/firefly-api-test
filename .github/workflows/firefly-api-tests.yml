@@ -1,0 +1,53 @@
+name: Firefly API Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  mock-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: firefly_api_tests
+        run: pip install -r requirements.txt
+
+      - name: Run offline mock tests
+        working-directory: firefly_api_tests
+        run: PYTHONPATH=. pytest -q -m "not integration" tests
+
+  integration-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      RUN_INTEGRATION_TESTS: "true"
+      FIREFLY_FARCASTER_LOGIN_PAYLOAD_JSON: ${{ secrets.FIREFLY_FARCASTER_LOGIN_PAYLOAD_JSON }}
+      FIREFLY_EXPECTED_STATUS: ${{ secrets.FIREFLY_EXPECTED_STATUS }}
+      FIREFLY_EXPECTED_CODE: ${{ secrets.FIREFLY_EXPECTED_CODE }}
+      FIREFLY_EXPECTED_MESSAGE: ${{ secrets.FIREFLY_EXPECTED_MESSAGE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: firefly_api_tests
+        run: pip install -r requirements.txt
+
+      - name: Run integration smoke tests
+        working-directory: firefly_api_tests
+        run: PYTHONPATH=. pytest -q -m integration tests
